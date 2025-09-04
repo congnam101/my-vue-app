@@ -1,60 +1,80 @@
 version: "3.8"
 
 services:
+  # Dịch vụ PostgreSQL - cơ sở dữ liệu chính
   db:
-    image: postgres:16
+    image: postgres:15
     restart: always
     env_file:
-      - .env
+      - .env  # Đọc biến môi trường từ file .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data  # Lưu trữ dữ liệu bền vững
     ports:
-      - "5433:5432"
+      - "5433:5432"  # Cổng host:container
     networks:
       - internal
-    healthcheck:
+    healthcheck:  # Kiểm tra tình trạng container
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  # Dịch vụ backend - Node.js Express hoặc tương tự
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_healthy  # Chỉ khởi động khi DB đã sẵn sàng
     env_file:
       - .env
     environment:
       DATABASE_URL: ${DATABASE_URL}
       PORT: ${BACKEND_PORT}
     ports:
-      - "${BACKEND_PORT}:${BACKEND_PORT}"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"  # Mở cổng backend
+    volumes:
+      - ./backend:/app  # Mount mã nguồn vào container
+      - /app/node_modules  # Giữ thư viện node_modules riêng
+    command: npm run dev  # Chạy chế độ phát triển
     restart: always
     networks:
       - internal
 
+  # Dịch vụ frontend - React/Vue hoặc tương tự
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     depends_on:
-      - backend
+      - backend  # Chờ backend khởi động trước
     ports:
-      - "80:80"
+      - "80:80"  # Mở cổng web
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev
     restart: always
     networks:
       - internal
 
+  # Dịch vụ Adminer - giao diện quản lý DB đơn giản
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - "8089:8089"
+  #   networks:
+  #     - internal
 
+  # Dịch vụ pgAdmin - giao diện quản lý DB nâng cao
   # pgadmin:
-  #   image: dpage/pgadmin4:9.7
+  #   image: dpage/pgadmin4:8
   #   restart: always
   #   env_file:
   #     - .env
@@ -69,9 +89,11 @@ services:
   #   networks:
   #     - internal
 
+# Volume dùng để lưu trữ dữ liệu PostgreSQL
 volumes:
   db-data:
 
+# Mạng nội bộ giữa các container
 networks:
   internal:
     driver: bridge

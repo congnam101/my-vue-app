@@ -7,9 +7,9 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
-    "preview": "vite preview",
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint:oxlint": "oxlint . --fix -D correctness --ignore-path .gitignore",

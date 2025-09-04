@@ -24,7 +24,6 @@ Build và chạy toàn bộ các container ở chế độ nền:
 docker compose up -d --build
 ```
 ## 🚀 Xem logs
-## 🚀 Xem logs
 ```bash
 docker compose logs -f backend     # Log của backend
 docker compose logs -f frontend    # Log của frontend
