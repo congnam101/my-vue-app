@@ -1,99 +1,91 @@
-version: "3.8"
+version: "3.9"
 
 services:
-  # Dịch vụ PostgreSQL - cơ sở dữ liệu chính
+  # 🛢️ PostgreSQL
   db:
     image: postgres:15
     restart: always
     env_file:
-      - .env  # Đọc biến môi trường từ file .env
+      - .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - db-data:/var/lib/postgresql/data  # Lưu trữ dữ liệu bền vững
+      - db-data:/var/lib/postgresql/data
     ports:
-      - "5433:5432"  # Cổng host:container
+      - "5433:5433" # Change to 5433 to avoid conflict with local Postgres
     networks:
       - internal
-    healthcheck:  # Kiểm tra tình trạng container
+    healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Dịch vụ backend - Node.js Express hoặc tương tự
+  # 🚀 Backend - Node.js + Prisma
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    depends_on:
-      db:
-        condition: service_healthy  # Chỉ khởi động khi DB đã sẵn sàng
+      dockerfile: Dockerfile.dev
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
     env_file:
       - .env
     environment:
       DATABASE_URL: ${DATABASE_URL}
       PORT: ${BACKEND_PORT}
     ports:
-      - "${BACKEND_PORT}:${BACKEND_PORT}"  # Mở cổng backend
-    volumes:
-      - ./backend:/app  # Mount mã nguồn vào container
-      - /app/node_modules  # Giữ thư viện node_modules riêng
-    command: npm run dev  # Chạy chế độ phát triển
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    depends_on:
+      db:
+        condition: service_healthy
     restart: always
     networks:
       - internal
 
-  # Dịch vụ frontend - React/Vue hoặc tương tự
+  # 🌐 Frontend - Vue/React (Vite)
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-    depends_on:
-      - backend  # Chờ backend khởi động trước
-    ports:
-      - "80:80"  # Mở cổng web
+      dockerfile: Dockerfile.dev
+    working_dir: /app
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    command: npm run dev
+    env_file:
+      - .env
+    environment:
+      VITE_API_URL: "http://localhost:${BACKEND_PORT}"
+    ports:
+      - "5173:5173" # Vite dev server
+    depends_on:
+      - backend
     restart: always
     networks:
       - internal
 
-  # Dịch vụ Adminer - giao diện quản lý DB đơn giản
-  # adminer:
-  #   image: adminer
-  #   restart: always
-  #   ports:
-  #     - "8089:8089"
-  #   networks:
-  #     - internal
+  # 🧩 PgAdmin
+  pgadmin:
+    image: dpage/pgadmin4:8
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - internal
 
-  # Dịch vụ pgAdmin - giao diện quản lý DB nâng cao
-  # pgadmin:
-  #   image: dpage/pgadmin4:8
-  #   restart: always
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-  #   ports:
-  #     - "8080:80"
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #   networks:
-  #     - internal
-
-# Volume dùng để lưu trữ dữ liệu PostgreSQL
+# 📦 Volumes
 volumes:
   db-data:
 
-# Mạng nội bộ giữa các container
+# 🔗 Networks
 networks:
   internal:
     driver: bridge

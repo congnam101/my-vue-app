@@ -1,0 +1,34 @@
+# # 🧱 Dùng Node.js bản mới nhất
+# FROM node:22
+
+# # 📁 Thư mục làm việc trong container
+# WORKDIR /app
+
+# # 📦 Copy file cấu hình
+# COPY package*.json ./
+
+# # 📥 Cài dependencies
+# RUN npm install
+
+# # 🔥 Expose port (Vite = 5173, Express = 4000)
+# EXPOSE 5173
+# EXPOSE 4000
+
+# # 🧠 Copy toàn bộ mã nguồn (nếu không mount volume)
+# COPY . .
+
+# # 🔥 Chạy dev server (Vite/Express với hot reload)
+# CMD ["npm", "run", "dev"]
+FROM node:22
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+EXPOSE 5173
+
+# Vite bind 0.0.0.0 để container có thể truy cập từ host
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

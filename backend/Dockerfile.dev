@@ -1,0 +1,15 @@
+# 🧱 Dùng Node.js LTS mới
+FROM node:22
+
+# 📁 Thư mục làm việc
+WORKDIR /app
+
+# 📦 Copy file cấu hình để cài dependencies
+COPY package*.json ./
+
+# 🧪 Cài dependencies
+RUN npm install
+
+# 🔥 Hot reload (code mount từ ngoài vào)
+EXPOSE 4000
+CMD ["npm", "run", "dev"]
