@@ -1,7 +1,7 @@
-# ở root
+## ở root
 docker compose up -d --build
 
-# xem logs
+## xem logs
 docker compose logs -f backend
 docker compose logs -f frontend
 
