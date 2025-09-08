@@ -1,22 +1,28 @@
+// backend/src/index.ts
 import express from "express";
-import { PrismaClient } from "@prisma/client";
+import cors from "cors";
+import loginRouter from "./routes/login"; // đúng nếu index.ts nằm trong src/
+import { setupSwagger } from "./swagger";
 
-const prisma = new PrismaClient();
 const app = express();
+
+// src/index.ts
+app.get("/", (req, res) => {
+  res.send("Backend đang chạy OK!");
+});
+
+// Middleware
+app.use(cors());
 app.use(express.json());
 
-app.get("/health", (req, res) => res.send({ ok: true }));
+// Routes
+app.use("/login", loginRouter);
 
-app.get("/users", async (req, res) => {
-  const users = await prisma.user.findMany();
-  res.json(users);
+// Swagger
+setupSwagger(app);
+
+const PORT = process.env.BACKEND_PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`Backend running at http://localhost:${PORT}`);
+  console.log(`Swagger UI at hhttp://localost:${PORT}/api-docs`);
 });
-
-app.post("/users", async (req, res) => {
-  const { name, email } = req.body;
-  const user = await prisma.user.create({ data: { name, email } });
-  res.status(201).json(user);
-});
-
-const port = process.env.PORT || 4000;
-app.listen(port, () => console.log(`Backend listening on ${port}`));

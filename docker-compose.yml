@@ -1,91 +1,39 @@
 version: "3.9"
 
 services:
-  # 🛢️ PostgreSQL
   db:
     image: postgres:15
-    restart: always
-    env_file:
-      - .env
+    container_name: my-vue-app-db
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: erp_base
+    ports:
+      - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
-    ports:
-      - "5433:5433" # Change to 5433 to avoid conflict with local Postgres
-    networks:
-      - internal
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # 🚀 Backend - Node.js + Prisma
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-    working_dir: /app
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-    env_file:
-      - .env
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-      PORT: ${BACKEND_PORT}
-    ports:
-      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    container_name: my-vue-app-backend
     depends_on:
-      db:
-        condition: service_healthy
-    restart: always
-    networks:
-      - internal
+      - db
+    environment:
+      DATABASE_URL: postgresql://postgres:123456@db:5432/erp_base
+    ports:
+      - "4000:4000"
 
-  # 🌐 Frontend - Vue/React (Vite)
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    env_file:
-      - .env
-    environment:
-      VITE_API_URL: "http://localhost:${BACKEND_PORT}"
-    ports:
-      - "5173:5173" # Vite dev server
+    container_name: my-vue-app-frontend
     depends_on:
       - backend
-    restart: always
-    networks:
-      - internal
-
-  # 🧩 PgAdmin
-  pgadmin:
-    image: dpage/pgadmin4:8
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
     ports:
-      - "8080:80"
-    depends_on:
-      - db
-    networks:
-      - internal
+      - "5173:5173"
 
-# 📦 Volumes
 volumes:
   db-data:
-
-# 🔗 Networks
-networks:
-  internal:
-    driver: bridge
