@@ -9,8 +9,9 @@
         <button type="submit">Đăng nhập</button>
       </form>
 
-      <p>Chưa có tài khoản? 
-        <button class="link-btn" @click="goRegister">Đăng ký</button>
+      <p class="register-link">
+        Chưa có tài khoản?
+        <button @click="goRegister">Đăng ký</button>
       </p>
 
       <p v-if="successMessage" class="success">{{ successMessage }}</p>
@@ -37,16 +38,14 @@ const login = async () => {
   errorMessage.value = "";
 
   try {
-    // Thay url thành backend login của bạn
     const res = await axios.post("http://localhost:4000/login", {
       email: email.value,
       password: password.value,
     });
 
     successMessage.value = res.data.message || "Đăng nhập thành công!";
-    localStorage.setItem("token", res.data.token); // lưu token nếu có
+    localStorage.setItem("token", res.data.token);
 
-    // Chuyển trang dashboard
     router.push("/dashboard");
   } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
@@ -57,78 +56,84 @@ const login = async () => {
   }
 };
 
-// Chuyển sang trang /register
 const goRegister = () => {
   router.push("/register");
 };
 </script>
 
-<style>
+<style scoped>
 .login-page {
-  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #b08eea, #9333ea);
+  min-height: 100vh;
+  background-color: #f3f3f3;
   font-family: 'Segoe UI', sans-serif;
-  padding: 1rem;
-  box-sizing: border-box;
 }
 
 .login-form {
-  background: #fff;
-  padding: 2.5rem;
+  background-color: #fff;
+  padding: 32px;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   width: 100%;
   max-width: 400px;
   text-align: center;
 }
 
-input {
+.login-form h2 {
+  font-size: 24px;
+  margin-bottom: 24px;
+}
+
+.login-form input {
   width: 100%;
   padding: 12px;
-  margin-bottom: 1rem;
-  border-radius: 8px;
+  margin-bottom: 16px;
   border: 1px solid #ccc;
-  outline: none;
+  border-radius: 6px;
   font-size: 16px;
 }
 
-input:focus {
-  border-color: #7c3aed;
-  box-shadow: 0 0 8px rgba(124, 58, 237, 0.4);
-}
-
-button {
-  padding: 12px;
+.login-form button {
   width: 100%;
-  border-radius: 8px;
-  border: none;
-  background: linear-gradient(135deg, #7c3aed, #9333ea);
-  color: #fff;
-  font-weight: 600;
+  padding: 12px;
+  background-color: #e0e0e0; /* xám nhạt, nhìn tự nhiên */
+  color: #333; /* chữ xám đậm dễ đọc */
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  margin-bottom: 1rem;
+  transition: background-color 0.2s;
 }
 
-button:hover {
-  transform: scale(1.03);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+.login-form button:hover {
+  background-color: #d5d5d5; /* hơi đậm hơn khi hover */
 }
 
-.link-btn {
+.register-link {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.register-link button {
   background: none;
   border: none;
-  color: #7c3aed;
+  color: #3a4ced;
   cursor: pointer;
-  font-weight: 600;
   text-decoration: underline;
-  padding: 0;
-  margin-left: 5px;
+  font-size: 14px;
 }
 
-.success { color: green; margin-top: 1rem; font-weight: 500; }
-.error { color: red; margin-top: 1rem; font-weight: 500; }
+.success {
+  color: green;
+  margin-top: 12px;
+}
+
+.error {
+  color: red;
+  margin-top: 12px;
+}
 </style>
+

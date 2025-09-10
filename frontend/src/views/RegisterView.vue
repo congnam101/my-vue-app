@@ -1,55 +1,36 @@
 <template>
-  <div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500">
-    <!-- Container fade-in -->
-    <div class="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md transform scale-90 opacity-0 animate-fade-in">
-      <h2 class="text-3xl font-extrabold mb-6 text-center text-gray-800 animate-slide-down">Đăng Ký</h2>
+  <div class="login-page">
+    <div class="login-form">
+      <h2>Đăng ký</h2>
 
-      <form @submit.prevent="register" class="space-y-5">
-        <input
-          v-model="email"
-          type="email"
-          placeholder="Email"
-          required
-          class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-400 transition shadow-inner duration-300 hover:shadow-lg"
-        />
-
-        <input
-          v-model="password"
-          type="password"
-          placeholder="Mật khẩu"
-          required
-          class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-400 transition shadow-inner duration-300 hover:shadow-lg"
-        />
-
-        <button
-          type="submit"
-          class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-bold shadow-lg hover:from-pink-500 hover:to-purple-500 transform hover:scale-105 transition-all duration-300"
-        >
-          Đăng Ký
-        </button>
+      <form @submit.prevent="register">
+        <input v-model="email" type="email" placeholder="Email" required />
+        <input v-model="password" type="password" placeholder="Mật khẩu" required />
+        <button type="submit">Đăng ký</button>
       </form>
 
-      <p class="mt-6 text-center text-gray-600 text-sm">
-        Đã có tài khoản? 
-        <router-link to="/login" class="text-purple-600 font-semibold hover:underline">Đăng Nhập</router-link>
+      <p class="register-link">
+        Đã có tài khoản?
+        <button @click="goLogin">Đăng nhập</button>
       </p>
 
-      <p v-if="successMessage" class="text-green-500 mt-4 text-center">{{ successMessage }}</p>
-      <p v-if="errorMessage" class="text-red-500 mt-4 text-center">{{ errorMessage }}</p>
+      <p v-if="successMessage" class="success">{{ successMessage }}</p>
+      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
-import axios from "axios";
 import { useRouter } from "vue-router";
+import axios from "axios";
+
+const router = useRouter();
 
 const email = ref("");
 const password = ref("");
 const successMessage = ref("");
 const errorMessage = ref("");
-const router = useRouter();
 
 const register = async () => {
   successMessage.value = "";
@@ -62,7 +43,6 @@ const register = async () => {
     });
 
     successMessage.value = res.data.message || "Đăng ký thành công!";
-
     setTimeout(() => {
       router.push("/login");
     }, 1000);
@@ -74,23 +54,84 @@ const register = async () => {
     }
   }
 };
+
+const goLogin = () => {
+  router.push("/login");
+};
 </script>
 
 <style scoped>
-/* Keyframe cho animation fade-in và slide-down */
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-}
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f3f3f3;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.5s forwards;
+.login-form {
+  background-color: #fff;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
 }
-.animate-slide-down {
-  animation: slideDown 0.5s forwards;
+
+.login-form h2 {
+  font-size: 24px;
+  margin-bottom: 24px;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.login-form button {
+  width: 100%;
+  padding: 12px;
+  background-color: #e0e0e0;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-form button:hover {
+  background-color: #d5d5d5;
+}
+
+.register-link {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.register-link button {
+  background: none;
+  border: none;
+  color: #3a4ced;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 14px;
+}
+
+.success {
+  color: green;
+  margin-top: 12px;
+}
+
+.error {
+  color: red;
+  margin-top: 12px;
 }
 </style>
