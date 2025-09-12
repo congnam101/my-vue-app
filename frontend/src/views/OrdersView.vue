@@ -2,7 +2,7 @@
   <div class="orders-page">
     <h2>Quản lý Đơn hàng</h2>
 
-    <!-- Form thêm đơn hàng -->
+    <!-- Form thêm đơn hàng (giữ nguyên logic cũ) -->
     <form @submit.prevent="addOrder" class="order-form">
       <input v-model="newOrder.code" placeholder="Mã đơn" required />
 
@@ -16,11 +16,7 @@
       <input type="date" v-model="newOrder.date" required />
 
       <!-- Chọn sản phẩm -->
-      <div
-        v-for="(item, index) in newOrder.items"
-        :key="index"
-        class="order-item"
-      >
+      <div v-for="(item, index) in newOrder.items" :key="index" class="order-item">
         <select
           v-model.number="item.product_id"
           @change="updateItemPrice(index)"
@@ -39,7 +35,6 @@
           @input="updateTotal"
         />
 
-        <!-- Hiển thị đơn giá và thành tiền -->
         <span>
           Đơn giá: {{ formatCurrency(item.price) }} —
           Thành tiền: {{ formatCurrency(item.price * item.quantity) }}
@@ -64,6 +59,7 @@
           <th>Mã đơn</th>
           <th>Khách hàng</th>
           <th>Ngày</th>
+          <th>Sản phẩm</th> <!-- cột mới -->
           <th>Tổng tiền</th>
           <th>Thao tác</th>
         </tr>
@@ -72,7 +68,18 @@
         <tr v-for="order in orders" :key="order.id">
           <td>{{ order.code }}</td>
           <td>{{ order.customer_name }}</td>
-          <td>{{ new Date(order.date).toLocaleDateString("vi-VN") }}</td>
+          <td>{{ new Date(order.date).toLocaleDateString('vi-VN') }}</td>
+
+          <!-- danh sách sản phẩm của đơn -->
+          <td>
+            <ul class="product-list">
+              <li v-for="(item, idx) in order.items" :key="idx">
+                {{ item.product_name }} × {{ item.quantity }}
+                ({{ formatCurrency(item.price) }})
+              </li>
+            </ul>
+          </td>
+
           <td>{{ formatCurrency(order.total) }}</td>
           <td>
             <button @click="deleteOrder(order.id)">Xóa</button>
@@ -89,10 +96,15 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 
-// Interfaces
+// Kiểu dữ liệu
 interface Customer { id: number; name: string; }
-interface Product { id: number; name: string; price: number; }
-interface OrderItem { product_id: number; quantity: number; price: number; }
+interface Product  { id: number; name: string; price: number; }
+interface OrderItem {
+  product_id: number;
+  product_name: string;  // thêm để hiển thị
+  quantity: number;
+  price: number;
+}
 interface Order {
   id: number;
   code: string;
@@ -104,15 +116,15 @@ interface Order {
 }
 
 // API endpoints
-const API_ORDERS = "http://localhost:4000/orders";
+const API_ORDERS    = "http://localhost:4000/orders";
 const API_CUSTOMERS = "http://localhost:4000/customers";
-const API_PRODUCTS = "http://localhost:4000/products";
+const API_PRODUCTS  = "http://localhost:4000/products";
 
 // State
-const orders = ref<Order[]>([]);
-const customers = ref<Customer[]>([]);
-const products = ref<Product[]>([]);
-const error = ref<string | null>(null);
+const orders     = ref<Order[]>([]);
+const customers  = ref<Customer[]>([]);
+const products   = ref<Product[]>([]);
+const error      = ref<string | null>(null);
 
 const newOrder = ref({
   code: "",
@@ -122,20 +134,22 @@ const newOrder = ref({
   total: 0
 });
 
-// Fetch data with proper typing
+// Lấy dữ liệu
 const fetchOrders = async () => {
   try {
     const res = await axios.get<Order[]>(API_ORDERS);
     orders.value = res.data.map(o => ({
       ...o,
       total: Number(o.total),
-      items: o.items.map(i => ({ ...i, price: Number(i.price) }))
+      items: o.items.map(i => ({
+        ...i,
+        price: Number(i.price)
+      }))
     }));
   } catch {
     error.value = "Không thể tải đơn hàng";
   }
 };
-
 const fetchCustomers = async () => {
   try {
     const res = await axios.get<Customer[]>(API_CUSTOMERS);
@@ -144,7 +158,6 @@ const fetchCustomers = async () => {
     error.value = "Không thể tải khách hàng";
   }
 };
-
 const fetchProducts = async () => {
   try {
     const res = await axios.get<Product[]>(API_PRODUCTS);
@@ -154,8 +167,9 @@ const fetchProducts = async () => {
   }
 };
 
-// Form xử lý
-const addItem = () => newOrder.value.items.push({ product_id: 0, quantity: 1, price: 0 });
+// Xử lý form
+const addItem = () =>
+  newOrder.value.items.push({ product_id: 0, product_name: "", quantity: 1, price: 0 });
 
 const removeItem = (index: number) => {
   newOrder.value.items.splice(index, 1);
@@ -164,30 +178,30 @@ const removeItem = (index: number) => {
 
 const updateItemPrice = (index: number) => {
   const prodId = newOrder.value.items[index].product_id;
-  const prod = products.value.find(p => p.id === prodId);
-  newOrder.value.items[index].price = prod?.price ?? 0;
+  const prod   = products.value.find(p => p.id === prodId);
+  newOrder.value.items[index].price        = prod?.price ?? 0;
+  newOrder.value.items[index].product_name = prod?.name  ?? "";
   updateTotal();
 };
 
 const updateTotal = () => {
-  newOrder.value.total = newOrder.value.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  newOrder.value.total = newOrder.value.items
+    .reduce((s, i) => s + i.price * i.quantity, 0);
 };
 
 const addOrder = async () => {
   if (!newOrder.value.code || !newOrder.value.customer_id || newOrder.value.items.length === 0) return;
-
   try {
-    // Ensure all numbers are numbers
     const payload = {
       ...newOrder.value,
       items: newOrder.value.items.map(i => ({
         product_id: i.product_id,
+        product_name: i.product_name,
         quantity: Number(i.quantity),
         price: Number(i.price)
       })),
       total: Number(newOrder.value.total)
     };
-
     await axios.post(API_ORDERS, payload);
     newOrder.value = { code: "", customer_id: 0, date: "", items: [], total: 0 };
     fetchOrders();
@@ -216,14 +230,15 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.orders-page { max-width: 900px; margin: 2rem auto; padding: 2rem; background: #fff; border-radius: 12px; }
-.order-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+.orders-page   { max-width: 900px; margin: 2rem auto; padding: 2rem; background: #fff; border-radius: 12px; }
+.order-form    { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
 .order-form input, .order-form select { padding: 8px; }
-.order-item { display: flex; gap: 5px; align-items: center; }
-.orders-table { width: 100%; border-collapse: collapse; }
+.order-item    { display: flex; gap: 5px; align-items: center; }
+.orders-table  { width: 100%; border-collapse: collapse; }
 .orders-table th, .orders-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
 .orders-table th { background: #f0f0f0; }
-button { cursor: pointer; }
-.error { color: red; margin-top: 1rem; }
+.product-list  { list-style: none; padding-left: 0; margin: 0; text-align: left; }
+button         { cursor: pointer; }
+.error         { color: red; margin-top: 1rem; }
 .total-display { margin-top: 10px; font-weight: bold; }
 </style>
