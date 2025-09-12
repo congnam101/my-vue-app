@@ -12,6 +12,8 @@ import SuppliersView from "../views/SuppliersView.vue"
 import CategoriesView from "../views/CategoriesView.vue"
 import OrdersView from "../views/OrdersView.vue"
 import ReportsView from "../views/ReportsView.vue"
+import ExcelImportView from "../views/ExcelImportView.vue";
+
 
 const routes: RouteRecordRaw[] = [
   {
@@ -40,6 +42,7 @@ const routes: RouteRecordRaw[] = [
       { path: "categories", name: "Categories", component: CategoriesView },
       { path: "orders", name: "Orders", component: OrdersView },
       { path: "reports", name: "Reports", component: ReportsView },
+      { path: "import-excel", name: "ImportExcel", component: ExcelImportView },
     ],
   },
 ]

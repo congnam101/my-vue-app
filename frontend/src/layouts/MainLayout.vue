@@ -12,17 +12,18 @@
     <div class="content">
       <!-- Sidebar -->
       <aside class="sidebar">
-        <ul>
-          <li><router-link to="/dashboard">🏠 Dashboard</router-link></li>
-          <li><router-link to="/products">📦 Mặt hàng</router-link></li>
-          <li><router-link to="/categories">🗂️ Danh mục</router-link></li>
-          <li><router-link to="/suppliers">🏢 Nhà cung cấp</router-link></li>
-          <li><router-link to="/customers">👥 Khách hàng</router-link></li>
-          <li><router-link to="/orders">📝 Đơn hàng</router-link></li>
-          <!-- <li><router-link to="/inventory">🏭 Kho</router-link></li> -->
-          <li><router-link to="/reports">📊 Báo cáo</router-link></li>
-        </ul>
-      </aside>
+  <ul>
+    <li><router-link to="/dashboard">🏠 Dashboard</router-link></li>
+    <li><router-link to="/products">📦 Mặt hàng</router-link></li>
+    <li><router-link to="/categories">🗂️ Danh mục</router-link></li>
+    <li><router-link to="/suppliers">🏢 Nhà cung cấp</router-link></li>
+    <li><router-link to="/customers">👥 Khách hàng</router-link></li>
+    <li><router-link to="/orders">📝 Đơn hàng</router-link></li>
+    <li><router-link to="/reports">📊 Báo cáo</router-link></li>
+    <li><router-link to="/import-excel">📥 Nhập Excel</router-link></li>
+  </ul>
+</aside>
+
 
       <!-- Main Content -->
       <main class="main-view">

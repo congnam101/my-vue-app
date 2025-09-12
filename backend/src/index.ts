@@ -10,6 +10,10 @@ import suppliersRouter from "./routes/suppliers"; // Nhà cung cấp
 import productsRouter from "./routes/products";   // Sản phẩm
 import ordersRouter from "./routes/orders";       // Đơn hàng
 // import reportsRouter from "./routes/reports";  // Báo cáo (chưa dùng)
+import excelProductRouter from "./routes/excelproducts";
+import excelCustomerRouter from "./routes/excelcustomers";
+
+
 
 import { setupSwagger } from "./swagger";         // Tài liệu API
 
@@ -27,6 +31,10 @@ app.use("/categories", categoriesRouter);
 app.use("/suppliers", suppliersRouter);
 app.use("/products", productsRouter);
 app.use("/orders", ordersRouter);
+app.use("/excel-products", excelProductRouter);
+app.use("/excel-customers", excelCustomerRouter);
+
+
 // app.use("/reports", reportsRouter); // Có thể thêm sau
 
 // 🧪 Route kiểm tra server
